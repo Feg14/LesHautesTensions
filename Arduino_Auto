@@ -1,0 +1,105 @@
+
+
+#include "DFRobot_OzoneSensor.h"
+
+#define COLLECT_NUMBER   20              // collect number, the collection range is 1-100
+#define Ozone_IICAddress OZONE_ADDRESS_3
+int signal=3;
+unsigned long currentMillis;
+int16_t Concentration2=-1;
+
+
+DFRobot_OzoneSensor Ozone;
+void setup() 
+{
+  pinMode(signal,OUTPUT);
+  digitalWrite(signal,LOW);
+
+
+  Serial.begin(9600);
+  while(!Ozone.begin(Ozone_IICAddress)) {
+    Serial.println("I2c device number error !");
+    delay(1000);
+  }  Serial.println("I2c connect success !");
+/*   Set iic mode, active mode or passive mode
+       MEASURE_MODE_AUTOMATIC            // active  mode
+       MEASURE_MODE_PASSIVE              // passive mode
+*/
+    Ozone.setModes(MEASURE_MODE_PASSIVE);
+}
+
+void lireConcentration(int16_t ozoneConcentration)
+{
+  Serial.print("La concentration d'ozone est de: ");
+  Serial.print(ozoneConcentration);
+  Serial.println(" PPB.");
+  delay(1000);
+
+}
+
+void produire()
+{
+
+  
+}
+
+void loop() 
+{
+
+  int16_t Concentration1 = Ozone.readOzoneData(COLLECT_NUMBER);
+
+  lireConcentration(Concentration1);
+
+ 
+  while (Concentration1==0){
+
+    lireConcentration(Concentration1);
+  }
+
+  if((Concentration1>9500)&&(Concentration1<=9950)){
+    if(Concentration1<Concentration2){
+    currentMillis=millis();
+    while(millis()<currentMillis+10000)
+    {
+      digitalWrite(signal,HIGH);
+      lireConcentration(Concentration1);
+    }
+
+
+
+        currentMillis=millis();
+    while(millis()<currentMillis+90000)
+    {
+      digitalWrite(signal,LOW);
+      lireConcentration(Concentration1);
+    }
+
+    }
+  }
+
+
+  while (Concentration1 <9500)
+  {
+    currentMillis=millis();
+    while(millis()<currentMillis+10000)
+    {
+      digitalWrite(signal,HIGH);
+      lireConcentration(Concentration1);
+    }
+
+
+
+        currentMillis=millis();
+    while(millis()<currentMillis+90000)
+    {
+      digitalWrite(signal,LOW);
+      lireConcentration(Concentration1);
+    }
+    
+  }
+
+
+
+
+   Concentration2 = Ozone.readOzoneData(COLLECT_NUMBER);
+}
